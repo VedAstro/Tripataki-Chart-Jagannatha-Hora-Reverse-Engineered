@@ -9,41 +9,53 @@
 </p>
 
 <p align="center">
-  <strong><a href="https://vedastro.org/blog/JHora-Reverse-Engineered-Part-2-Tripataki-Chart.html">📖 Read the human story: The Line Between Mars and My Moon</a></strong>
+  <strong><a href="https://vedastro.org/blog/JHora-Reverse-Engineered-Part-2-Tripataki-Chart.html">📖 Read the story: How My Tripataki Chart Changes with Every Year</a></strong>
 </p>
 
 # Tripataki Chart — Jagannatha Hora Reverse Engineered
 
-Retrieve a natal Lagna and planetary signs through simple HTTPS requests, arrange them with JHora's recovered Tripataki D-1 placement logic, and generate the twelve-sign lattice as an SVG—all with one dependency-free JavaScript file.
+Generate a true annual Tripataki Chakra from birth data and a target year. This dependency-free JavaScript example finds the sidereal solar return, calculates the Varsha Lagna, progresses the natal planets with the traditional 9/4/6-year rules, places them on JHora's recovered twelve-sign lattice, and writes the result as an SVG.
 
 ![Tripataki chart in the original Jagannatha Hora application](./assets/tripataki-chart-jhora.webp)
 
-## What was actually recovered?
+## Why this implementation goes beyond the screenshot
 
-This repository reproduces the JHora screen explicitly labelled **“Planets in D-1 (from Lagna in D-1)”**. It is the natal D-1 display mode of the Tripataki view—not a claim that an annual Varshaphala progression has been calculated.
+The recovered JHora screen above is labelled **“Planets in D-1 (from Lagna in D-1)”**. It gave us the genuine native display foundation, but traditional Tripataki is a year-specific Varshaphala technique:
 
-The implementation is based on the real native program rather than a diagram guessed from screenshots:
+- the centre flag begins with the **Varsha Lagna**, the Ascendant at the annual solar return;
+- each planet begins from its **natal sign** and is progressed according to the running year of life;
+- the resulting annual placements are inspected for **vedha**, especially influences reaching the Moon and Varsha Lagna.
+
+This repository combines both layers honestly. The lattice, anchors and collision behavior come from the decompiled JHora feature. The annual progression layer follows the three-tier method described in K. S. Charak's *A Textbook of Varshaphala* and other traditional Varshaphala references.
+
+## What was recovered from JHora?
 
 - The registered MFC view class is `CTripatakiChakraView`.
 - Native renderer `FUN_00481670` contains the lattice drawing and label-collision machinery.
 - Recovered routine `FUN_00491150` exposes the twelve-sector coordinates and five native object-group branches.
-- The first sector is seeded from the Lagna sign; the remaining eleven signs advance in zodiac order around JHora's fixed anchors.
-- Planets are assigned by their sign relative to Lagna, with collision ordering when multiple bodies occupy one sector.
-- The native groups are planets, Trisphuta, upagrahas, special lagnas and 36 Sahama slots. This small public example intentionally stays with the visible nine-planet D-1 mode.
+- JHora's wider Tajaka system contains annual, monthly and finer return-chart modes, with the annual system anchored to the solar return.
+- The native object groups include planets, Trisphuta, upagrahas, special lagnas and 36 Sahama slots.
 
 This is one feature from VedAstro's full-binary recovery of the 32-bit x86 JHora executable: **7,535 functions inventoried, 7,533 recovered as C-like decompilation, and the remaining two preserved as complete assembly**.
 
-## Important scope distinction
+## Traditional annual calculation
 
-Traditional literature also describes Tripataki as a technique used in annual Varshaphala interpretation, often with age-based progressions and special attention to vedha on the Moon or annual Lagna. JHora contains a wider Tajaka/annual-chart system, but that is not what the screenshot or this example displays.
+For a Tripataki covering target year `Y`:
 
-This repository therefore does exactly what its evidence supports:
+1. Find the exact sidereal solar return in year `Y` and calculate its Ascendant. This is the **Varsha Lagna**.
+2. Compute `completedYears = Y - birthYear` and `currentYear = completedYears + 1`.
+3. Progress each natal sign by counting the indicated sign inclusively:
 
-1. obtains natal sidereal positions;
-2. places Gemini—or whichever sign contains the Lagna—at JHora's first anchor;
-3. rotates all twelve signs through the recovered lattice order;
-4. places Lagna and the nine planets by relative sign; and
-5. writes a viewable `tripataki-chart.svg`.
+| Bodies | Divisor | Zero remainder | Direction |
+|---|---:|---:|---|
+| Moon | 9 | 9 | Forward |
+| Sun, Mercury, Jupiter, Venus, Saturn | 4 | 4 | Forward |
+| Mars | 6 | 6 | Forward |
+| Rahu and Ketu | 6 | 6 | Reverse |
+
+If the remainder is `1`, the planet stays in its natal sign. A remainder of `3` places a direct-moving planet in the third sign counted from its natal sign; Rahu and Ketu are counted backward.
+
+Some authorities place Mars in the 4-year group or use annual-chart positions without progression. This example deliberately exposes the adopted three-tier rule instead of hiding the variation.
 
 ## Run the JavaScript example
 
@@ -55,66 +67,85 @@ cd Tripataki-Chart-Jagannatha-Hora-Reverse-Engineered
 npm start
 ```
 
-The command prints the complete lattice model as JSON and creates `tripataki-chart.svg` in the current folder. Edit `birthDetails` near the top of [`index.js`](./index.js) to use another birth date, time, UTC offset and location.
+The command prints the full annual model as JSON and creates `tripataki-chart.svg`. Edit `birthDetails` and `TARGET_YEAR` near the top of [`index.js`](./index.js) to calculate another person or year.
 
-The default example reproduces the supplied Gemini-Lagna chart:
-
-```text
-Reference sign: Gemini
-Moon: Virgo, relative sector 4
-Mars: Pisces, relative sector 10
-Sun and Mercury: Aries, relative sector 11
-Venus and Ketu: Taurus, relative sector 12
-```
-
-## The HTTPS data flow
-
-The example calls two public VedAstro calculators in parallel:
+For the included birth data and target year 2026, the example calculates:
 
 ```text
-POST https://api.vedastro.org/api/Calculate/AllPlanetRasiSigns
-POST https://api.vedastro.org/api/Calculate/AllHouseRasiSigns
+Sidereal solar return: 17:42, 23 April 2026, +08:00
+Completed years: 32
+Running year: 33
+Varsha Lagna: Virgo
+
+Moon: natal Virgo → annual Tripataki Aquarius (33 mod 9 = 6)
+Mars: natal Pisces → annual Tripataki Taurus (33 mod 6 = 3)
+Rahu: natal Scorpio → annual Tripataki Virgo (reverse count of 3)
+Ketu: natal Taurus → annual Tripataki Pisces (reverse count of 3)
 ```
 
-Both receive this shape:
+## The three HTTPS calculations
+
+The example uses public VedAstro endpoints:
+
+```text
+TajikaDateForYear2   → exact sidereal solar-return time
+AllHouseRasiSigns    → Varsha Lagna at that return moment
+AllPlanetRasiSigns   → natal signs to be progressed
+```
+
+POST requests are the default. To use readable GET routes instead:
+
+```bash
+npm run start:get
+```
+
+The birth-data body is ordinary JSON:
 
 ```json
 {
   "Ayanamsa": "LAHIRI",
-  "Time": {
+  "birthTime": {
     "StdTime": "12:44 23/04/1994 +08:00",
     "Location": {
       "Name": "Ipoh, Malaysia",
       "Longitude": 101.0833,
       "Latitude": 4.5833
     }
-  }
+  },
+  "scanYear": 2026
 }
 ```
 
-To use readable GET routes instead:
+The other calls use the same `Time` structure—first with the natal time, then with the returned solar-return time.
 
-```bash
-npm run start:get
-```
+## Reading the chart
 
-The API provides the astronomical D-1 data. The small transformation in `buildTripataki()` applies the recovered JHora view logic to that data; `renderSvg()` draws the native-style lattice.
+The twelve signs are arranged counter-clockwise from the Varsha Lagna at the centre flag. At every outer point, three lattice lines converge. A planet at the other end of any of those lines is said to give vedha to the planet being judged. Co-location at the same point may also be treated as vedha.
 
-## Reading the visible geometry
+Traditional practice pays particular attention to the Moon and Varsha Lagna:
 
-In the default chart, the Moon occupies Virgo on the left and Mars occupies Pisces directly opposite it on the right. A horizontal lattice line joins those anchors. Traditional Tripataki readers describe such a line as a Mars vedha to the Moon and may associate it with pressure, competition, impatience or emotional agitation.
+- benefic vedha suggests support or constructive developments;
+- malefic vedha suggests pressure, obstacles or tension;
+- a mixture indicates mixed results;
+- lordship, strength, the year lord, annual Tajaka yogas and natal promise modify every result.
 
-That is an interpretive rule, not a deterministic prediction. Planetary strength, lordship and the wider natal or annual context matter. Major claims—especially claims about illness, accidents or disaster—should never be made from this diagram alone.
+Tripataki gives a broad annual overview. It should not be used alone for extreme predictions about disease, accidents or death.
 
 ## Files
 
-- [`index.js`](./index.js) — API calls, recovered relative-sign placement and SVG renderer.
-- [`assets/tripataki-chart-jhora.webp`](./assets/tripataki-chart-jhora.webp) — optimized reference screenshot.
+- [`index.js`](./index.js) — solar-return call, annual progression rules, recovered placement logic and SVG renderer.
+- [`assets/tripataki-chart-jhora.webp`](./assets/tripataki-chart-jhora.webp) — optimized reference screenshot of the recovered D-1 view.
 - [`LICENSE`](./LICENSE) — MIT License.
 
-## Try the full interface
+## Try the interface
 
-Open [JHora Online](https://vedastro.org/Jagannatha-Hora-Software.html), enter the birth details, select **Chakras**, and choose **Tripataki**.
+Open [JHora Online](https://vedastro.org/Jagannatha-Hora-Software.html), enter birth details, select **Chakras**, and choose **Tripataki**. The online screen currently preserves JHora's recovered D-1 view; the JavaScript example in this repository demonstrates the completed annual progression.
+
+## Sources and methodology
+
+- K. S. Charak, *A Textbook of Varshaphala*, Chapter VIII, “The Tri-Pataki Chakra.”
+- JHora native `CTripatakiChakraView`, `FUN_00481670`, `FUN_00491150`, and the recovered Tajaka solar-return path.
+- VedAstro's public calculation API for natal positions, solar return and Varsha Lagna.
 
 ## Disclaimer
 

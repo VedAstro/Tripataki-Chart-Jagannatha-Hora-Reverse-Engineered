@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Minimal JavaScript example for retrieving natal positions and rebuilding JHora's Tripataki D-1 lattice.",
+  "description": "JavaScript example for calculating an annual Tripataki Chakra with Varsha Lagna and age-progressed natal planets.",
   "scripts": {
     "start": "node index.js",
     "start:get": "node index.js --get",
