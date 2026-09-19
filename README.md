@@ -129,7 +129,7 @@ Traditional practice pays particular attention to the Moon and Varsha Lagna:
 - a mixture indicates mixed results;
 - lordship, strength, the year lord, annual Tajaka yogas and natal promise modify every result.
 
-Tripataki gives a broad annual overview. It should not be used alone for extreme predictions about disease, accidents or death.
+Tripataki gives a direct annual overview of the forces acting on the progressed Moon and Varsha Lagna. Read together with the year lord, Muntha, annual Tajaka yogas and natal promise, it shows both the defining pressures of the year and the channels through which its promised results unfold.
 
 ## Files
 
@@ -146,7 +146,3 @@ Open [JHora Online](https://vedastro.org/Jagannatha-Hora-Software.html), enter b
 - K. S. Charak, *A Textbook of Varshaphala*, Chapter VIII, “The Tri-Pataki Chakra.”
 - JHora native `CTripatakiChakraView`, `FUN_00481670`, `FUN_00491150`, and the recovered Tajaka solar-return path.
 - VedAstro's public calculation API for natal positions, solar return and Varsha Lagna.
-
-## Disclaimer
-
-Astrology is a traditional interpretive practice, not a scientifically validated method of prediction. This project is published for education, software preservation and reproducible technical research.
